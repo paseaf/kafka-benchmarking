@@ -14,7 +14,7 @@ We want to benchmark the consistency behaviors (_yield_ and _harvest_) of Apache
 
 ### Open Questions
 
-1. Can we ignore the geographical distance between producer/consumer and Kafka cluster? \
+1. Can we ignore the geographical distance between producer/consumer and Kafka cluster?
    I assume the distance has not much to do with yield or harvest. Although longer distance may lead to a higher probability of packet loss. But should it count for a SUT's property?
 
 ## Kafka Cluster Setup
@@ -28,7 +28,7 @@ We want to benchmark the consistency behaviors (_yield_ and _harvest_) of Apache
 - We want to benchmark the consistency behavior of Kafka in the cloud (GCP).
 - We need a realistic production-ready setup for the results to be meaningful.
 - We have limited resources to deploy the system:
-  - one person beginner knowledge in Kafka and GCP
+  - one person with beginner knowledge in Kafka and GCP
   - 50 GCP credits
   - <= 30 hours working time
 
@@ -54,3 +54,41 @@ We want to benchmark the consistency behaviors (_yield_ and _harvest_) of Apache
 - **Deploy Kafka broker and ZooKeeper server on different hosts**
 
   As recommended by Kafka's [official documentation](https://kafka.apache.org/28/documentation.html#zkops).
+
+- **Put 1 consumer/Kafka Broker**
+
+  See behavior difference between different Brokers (in different regions).
+
+### Metrics
+
+| Metric      | Definition                                                   | Description                                                  |
+| ----------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Yield       | `Yield = total success responses producer received / total requests producer sent` | How many requests return a valid response?                   |
+| Harvest     | `Harvest = number of requests the consumer received / total requests producer sent` | How many messages are received with a receive request?       |
+| Order       | `total position offsets of each received message`            | To which degree are messages out-of-order?                   |
+| Duplication | `number of duplicate messages consumer received`             | How often are duplicate messages received?                   |
+| E2e latency | Time elapsed from a message is sent from a producer to it is received by a consumer. | How long does it take for a message to traverse from the producer through the system to the consumer? |
+
+### Parameters
+
+#### Producer Parameters
+
+| Parameter            | Possible value  |
+| -------------------- | --------------- |
+| `acks`               | `{0, 1, all}`   |
+| `enable.idempotence` | `{true, false}` |
+
+#### Broker Parameters
+
+| Parameter                    | Possible value |
+| ---------------------------- | -------------- |
+| `min.insync.replicas`        |                |
+| `default.replication.factor` |                |
+
+### When to test
+
+- Repeated at different times of day, different days during the week. (CSB Book page 43)
+
+### Workloads
+
+- [ ] Decide to use synthetic or trace-based during implementation
