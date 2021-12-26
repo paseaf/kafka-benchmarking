@@ -3,6 +3,7 @@
 Kafka version: 2.8.1
 ZooKeeper version: 3.5.9
 https://kafka.apache.org/28/documentation.html#zk
+![Deploy Kafka on GCP](/diagrams/deploy-kafka-on-gcp.drawio.svg)
 
 ## Set up a ZooKeeper Ensemble of 3 Servers
 
@@ -93,3 +94,5 @@ Tools:
   ```bash
   jps -l
   ```
+
+## Set up a Kafka Cluster of 3 Servers

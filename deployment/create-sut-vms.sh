@@ -5,20 +5,18 @@
 
 set -euo pipefail # stop execution when an error occurs
 
-readonly USERNAME=ziyang
-readonly ZONE1="europe-west3-a"
-readonly ZONE2="europe-west3-b"
-readonly ZONE3="europe-west3-c"
-readonly REGION="europe-west3"
-readonly SUT_TAG="kafka-sut"
-readonly TEMP_KEY_FILE="temp_keyfile"
-readonly SSH_KEY_FILE="id_rsa"
-# TODO: change to n2-standard-8 after validation
-readonly ZOOKEEPER_MACHINE="e2-medium"
-readonly KAFKA_MACHINE="n2-standard-8"
-readonly VPC="kafka-network"
-readonly SUT_SUBNET="sut-subnet"
-readonly UBUNTU20_IMAGE="ubuntu-2004-focal-v20211212"
+USERNAME=ziyang
+ZONE1="europe-west3-a"
+ZONE2="europe-west3-b"
+ZONE3="europe-west3-c"
+REGION="europe-west3"
+SUT_TAG="kafka-sut"
+TEMP_KEY_FILE="temp_keyfile"
+SSH_KEY_FILE="id_rsa"
+ZOOKEEPER_MACHINE="e2-medium"
+KAFKA_MACHINE="n2-highmem-2"
+VPC="kafka-network"
+SUT_SUBNET="sut-subnet"
 
 
 
@@ -67,19 +65,27 @@ gcloud compute instances create zookeeper-server3 --zone=$ZONE3 \
     --network-interface network=$VPC,subnet=$SUT_SUBNET,address="zookeeper3-ip" \
     --create-disk=size=64GB,type=pd-ssd,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
 
+# Follow README.md to install and configure the ZooKeeper ensemble
 
-# ---------------- Create VMs ------------------
-# gcloud compute addresses create kafka1-ip --region=$REGION
-# gcloud compute addresses create kafka2-ip --region=$REGION
-# gcloud compute addresses create kafka3-ip --region=$REGION
+# ---------------- Create Kafka VMs ------------------
+gcloud compute addresses create kafka1-ip --region=$REGION
+gcloud compute addresses create kafka2-ip --region=$REGION
+gcloud compute addresses create kafka3-ip --region=$REGION
 
 
-# gcloud compute instances create kafka-broker1 --zone=$ZONE1 --image=$UBUNTU20_IMAGE \
-#     --machine-type=$KAFKA_MACHINE --tags=$SUT_TAG \
-#     --network-interface network=$VPC,subnet=$SUT_SUBNET,address="kafka1-ip"
-    
-# gcloud compute instances create kafka-broker2 --zone=$ZONE2 --image=$UBUNTU20_IMAGE --machine-type=$KAFKA_MACHINE --tags=$SUT_TAG \
-#     --network-interface network=$VPC,subnet=$SUT_SUBNET,address="kafka2-ip"
-    
-# gcloud compute instances create kafka-broker2 --zone=$ZONE3 --image=$UBUNTU20_IMAGE --machine-type=$KAFKA_MACHINE --tags=$SUT_TAG \
-#     --network-interface network=$VPC,subnet=$SUT_SUBNET,address="kafka3-ip"
+gcloud compute instances create kafka-broker1 --zone=$ZONE1 \
+    --machine-type=$KAFKA_MACHINE --tags=$SUT_TAG \
+    --network-interface network=$VPC,subnet=$SUT_SUBNET,address="kafka1-ip" \
+    --create-disk=size=100GB,type=pd-balanced,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
+
+gcloud compute instances create kafka-broker2 --zone=$ZONE2 \
+    --machine-type=$KAFKA_MACHINE --tags=$SUT_TAG \
+    --network-interface network=$VPC,subnet=$SUT_SUBNET,address="kafka2-ip" \
+    --create-disk=size=100GB,type=pd-balanced,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
+
+gcloud compute instances create kafka-broker3 --zone=$ZONE3 \
+    --machine-type=$KAFKA_MACHINE --tags=$SUT_TAG \
+    --network-interface network=$VPC,subnet=$SUT_SUBNET,address="kafka3-ip" \
+    --create-disk=size=100GB,type=pd-balanced,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
+
+# Follow README.md to install and configure the Kafka cluster
