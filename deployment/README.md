@@ -61,7 +61,7 @@ For each VM:
 
    ```bash
    sudo mkdir -p /var/lib/zookeeper
-   sudo chown $USER /var/lib/zookeeper
+   sudo chown -R $USER:$USER /var/lib/zookeeper
    # use 2, 3 for server 2 and 3, respectively.
    cat  > /var/lib/zookeeper/myid<<'EOF'
    1
@@ -96,3 +96,54 @@ Tools:
   ```
 
 ## Set up a Kafka Cluster of 3 Servers
+
+For each VM:
+
+0. Update os packages
+   ```bash
+   sudo apt update && sudo apt upgrade -y
+   ```
+1. Install JDK 11.
+   ```bash
+   sudo apt install openjdk-11-jdk-headless -y
+   ```
+2. Install Kafka 2.8.1
+
+   ```bash
+   wget https://archive.apache.org/dist/kafka/2.8.1/kafka_2.13-2.8.1.tgz
+   tar -zxf kafka_2.13-2.8.1.tgz
+   sudo mv kafka_2.13-2.8.1 /usr/local/kafka
+   sudo chown -R $USER:$USER /usr/local/kafka
+   mkdir /tmp/kafka-logs
+   ```
+
+3. Replace server config `/usr/local/kafka/config/server.properties` with `./kafka_server<id>.profiles` in the current path.
+
+4. Start Kafka server
+
+   ```bash
+   export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+   /usr/local/kafka/bin/kafka-server-start.sh -daemon /usr/local/kafka/config/server.properties
+   ```
+
+   5. Test Kafka server
+
+   ```bash
+   /usr/local/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --replication-factor 3 --partitions 1 --topic test2
+   /usr/local/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --describe --topic test
+
+   # produce messages to test topic
+   /usr/local/kafka/bin/kafka-console-producer.sh --bootstrap-server localhost:9092, --topic test
+
+   # consume messages to test topic
+   /usr/local/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning --partition 0
+   ```
+
+   TODO: check out why brokers cannot find each other
+
+   ```bash
+   ziyang@kafka-broker1:~$ /usr/local/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --replication-factor 3 --partitions 1 --topic test2
+   Error while executing topic command : Replication factor: 3 larger than available brokers: 1.
+   [2021-12-27 22:37:35,338] ERROR org.apache.kafka.common.errors.InvalidReplicationFactorException: Replication factor: 3 larger than available brokers: 1. afka
+   (kafka.admin.TopicCommand$)
+   ```
