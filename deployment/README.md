@@ -92,7 +92,7 @@ Tools:
   ```
 - Check if ZooKeeper is running
   ```bash
-  jps -l
+  /usr/local/zookeeper/bin/zkServer.sh status
   ```
 
 ## Set up a Kafka Cluster of 3 Servers
@@ -123,27 +123,38 @@ For each VM:
 
    ```bash
    export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+   # run in background
    /usr/local/kafka/bin/kafka-server-start.sh -daemon /usr/local/kafka/config/server.properties
+   # or run in foreground for debugging
+   /usr/local/kafka/bin/kafka-server-start.sh /usr/local/kafka/config/server.properties
+
    ```
 
    5. Test Kafka server
 
    ```bash
-   /usr/local/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --replication-factor 3 --partitions 1 --topic test2
-   /usr/local/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --describe --topic test
+   /usr/local/kafka/bin/kafka-topics.sh --bootstrap-server 10.1.0.15:9092 --create --replication-factor 3 --partitions 1 --topic test
+   /usr/local/kafka/bin/kafka-topics.sh --bootstrap-server 10.1.0.15:9092 --describe --topic test
 
    # produce messages to test topic
-   /usr/local/kafka/bin/kafka-console-producer.sh --bootstrap-server localhost:9092, --topic test
+   /usr/local/kafka/bin/kafka-console-producer.sh --bootstrap-server 10.1.0.15:9092, --topic test
 
    # consume messages to test topic
-   /usr/local/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning --partition 0
+   /usr/local/kafka/bin/kafka-console-consumer.sh --bootstrap-server 10.1.0.15:9092 --topic test --from-beginning --partition 0
    ```
 
-   TODO: check out why brokers cannot find each other
+   Note: in `--bootstrap-server <brokerIp>:<port>`, `<brokerIp>` can be any broker's IP in the cluster 6. Run Kafka on startup:
 
    ```bash
-   ziyang@kafka-broker1:~$ /usr/local/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --replication-factor 3 --partitions 1 --topic test2
-   Error while executing topic command : Replication factor: 3 larger than available brokers: 1.
-   [2021-12-27 22:37:35,338] ERROR org.apache.kafka.common.errors.InvalidReplicationFactorException: Replication factor: 3 larger than available brokers: 1. afka
-   (kafka.admin.TopicCommand$)
+   crontab -e
+   # then add the following line
+   /usr/local/kafka/bin/kafka-server-start.sh -daemon /usr/local/kafka/config/server.properties
+   @reboot
+   ```
+
+   Current problem: a leader is not selected after restart. Have to manually stop and start all brokers.
+
+   ```bash
+   /usr/local/kafka/bin/kafka-server-stop.sh -daemon /usr/local/kafka/config/server.properties
+   /usr/local/kafka/bin/kafka-server-start.sh -daemon /usr/local/kafka/config/server.properties
    ```
