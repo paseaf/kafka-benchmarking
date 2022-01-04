@@ -46,9 +46,9 @@ For each VM:
    clientPort=2181
    initLimit=5
    syncLimit=2
-   server.1=10.1.0.5:2888:3888
-   server.2=10.1.0.6:2888:3888
-   server.3=10.1.0.7:2888:3888
+   server.1=10.1.0.20:2888:3888
+   server.2=10.1.0.21:2888:3888
+   server.3=10.1.0.22:2888:3888
    EOF
    ```
 
@@ -119,6 +119,11 @@ For each VM:
 
 3. Replace server config `/usr/local/kafka/config/server.properties` with `./kafka_server<id>.profiles` in the current path.
 
+   ```bash
+   vim /usr/local/kafka/config/server.properties
+   # :1,$d
+   ```
+
 4. Start Kafka server
 
    ```bash
@@ -130,17 +135,17 @@ For each VM:
 
    ```
 
-   5. Test Kafka server
+   1. Test Kafka server
 
    ```bash
-   /usr/local/kafka/bin/kafka-topics.sh --bootstrap-server 10.1.0.15:9092 --create --replication-factor 3 --partitions 1 --topic test
-   /usr/local/kafka/bin/kafka-topics.sh --bootstrap-server 10.1.0.15:9092 --describe --topic test
+   /usr/local/kafka/bin/kafka-topics.sh --bootstrap-server 10.1.0.23:9092 --create --replication-factor 3 --partitions 1 --topic test
+   /usr/local/kafka/bin/kafka-topics.sh --bootstrap-server 10.1.0.23:9092 --describe --topic test
 
    # produce messages to test topic
-   /usr/local/kafka/bin/kafka-console-producer.sh --bootstrap-server 10.1.0.15:9092, --topic test
+   /usr/local/kafka/bin/kafka-console-producer.sh --bootstrap-server 10.1.0.23:9092, --topic test
 
    # consume messages to test topic
-   /usr/local/kafka/bin/kafka-console-consumer.sh --bootstrap-server 10.1.0.15:9092 --topic test --from-beginning --partition 0
+   /usr/local/kafka/bin/kafka-console-consumer.sh --bootstrap-server 10.1.0.23:9092 --topic test --from-beginning --partition 0
    ```
 
    Note: in `--bootstrap-server <brokerIp>:<port>`, `<brokerIp>` can be any broker's IP in the cluster 6. Run Kafka on startup:

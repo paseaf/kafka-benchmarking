@@ -15,6 +15,7 @@ TEMP_KEY_FILE="temp_keyfile"
 SSH_KEY_FILE="id_rsa"
 ZOOKEEPER_MACHINE="e2-medium"
 KAFKA_MACHINE="n2-highmem-2"
+CLIENT_MACHINE="e2-medium"
 VPC="kafka-network"
 SUT_SUBNET="sut-subnet"
 
@@ -53,17 +54,17 @@ gcloud compute addresses create zookeeper3-ip --region=$REGION
 gcloud compute instances create zookeeper-server1 --zone=$ZONE1 \
     --machine-type=$ZOOKEEPER_MACHINE --tags=$SUT_TAG \
     --network-interface network=$VPC,subnet=$SUT_SUBNET,address="zookeeper1-ip" \
-    --create-disk=size=64GB,type=pd-ssd,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
+    --create-disk=size=32GB,type=pd-ssd,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
 
 gcloud compute instances create zookeeper-server2 --zone=$ZONE2 \
     --machine-type=$ZOOKEEPER_MACHINE --tags=$SUT_TAG \
     --network-interface network=$VPC,subnet=$SUT_SUBNET,address="zookeeper2-ip" \
-    --create-disk=size=64GB,type=pd-ssd,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
+    --create-disk=size=32GB,type=pd-ssd,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
 
 gcloud compute instances create zookeeper-server3 --zone=$ZONE3 \
     --machine-type=$ZOOKEEPER_MACHINE --tags=$SUT_TAG \
     --network-interface network=$VPC,subnet=$SUT_SUBNET,address="zookeeper3-ip" \
-    --create-disk=size=64GB,type=pd-ssd,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
+    --create-disk=size=32GB,type=pd-ssd,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
 
 # Follow README.md to install and configure the ZooKeeper ensemble
 
@@ -76,16 +77,33 @@ gcloud compute addresses create kafka3-ip --region=$REGION
 gcloud compute instances create kafka-broker1 --zone=$ZONE1 \
     --machine-type=$KAFKA_MACHINE --tags=$SUT_TAG \
     --network-interface network=$VPC,subnet=$SUT_SUBNET,address="kafka1-ip" \
-    --create-disk=size=100GB,type=pd-balanced,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
+    --create-disk=size=50GB,type=pd-balanced,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
 
 gcloud compute instances create kafka-broker2 --zone=$ZONE2 \
     --machine-type=$KAFKA_MACHINE --tags=$SUT_TAG \
     --network-interface network=$VPC,subnet=$SUT_SUBNET,address="kafka2-ip" \
-    --create-disk=size=100GB,type=pd-balanced,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
+    --create-disk=size=50GB,type=pd-balanced,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
 
 gcloud compute instances create kafka-broker3 --zone=$ZONE3 \
     --machine-type=$KAFKA_MACHINE --tags=$SUT_TAG \
     --network-interface network=$VPC,subnet=$SUT_SUBNET,address="kafka3-ip" \
-    --create-disk=size=100GB,type=pd-balanced,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
+    --create-disk=size=50GB,type=pd-balanced,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
+
+# ------ Create Kafka Client VMs
+
+gcloud compute instances create client1 --zone=$ZONE1 \
+    --machine-type=$CLIENT_MACHINE --tags=$SUT_TAG \
+    --network-interface network=$VPC,subnet=$SUT_SUBNET \
+    --create-disk=size=30GB,type=pd-ssd,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
+
+gcloud compute instances create client2 --zone=$ZONE2 \
+    --machine-type=$CLIENT_MACHINE --tags=$SUT_TAG \
+    --network-interface network=$VPC,subnet=$SUT_SUBNET \
+    --create-disk=size=30GB,type=pd-ssd,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
+
+gcloud compute instances create client3 --zone=$ZONE3 \
+    --machine-type=$CLIENT_MACHINE --tags=$SUT_TAG \
+    --network-interface network=$VPC,subnet=$SUT_SUBNET \
+    --create-disk=size=30GB,type=pd-ssd,boot=yes,image=projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20211212
 
 # Follow README.md to install and configure the Kafka cluster
