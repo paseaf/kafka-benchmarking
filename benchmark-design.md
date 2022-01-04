@@ -12,10 +12,11 @@ We want to benchmark the consistency behaviors (_yield_ and _harvest_) of Apache
 
 ![Benchmark system setup](diagrams/benchmark-system-setup.drawio.svg)
 
-### Open Questions
+What each client does:
 
-1. Can we ignore the geographical distance between producer/consumer and Kafka cluster?
-   I assume the distance has not much to do with yield or harvest. Although longer distance may lead to a higher probability of packet loss. But should it count for a SUT's property?
+1. producer 1 sends data to its Broker
+2. producer 2, 3 consumes data from Broker 2, 3, respectively
+3.
 
 ## Kafka Cluster Setup
 
@@ -61,29 +62,60 @@ We want to benchmark the consistency behaviors (_yield_ and _harvest_) of Apache
 
 ### Metrics
 
-| Metric      | Definition                                                   | Description                                                  |
-| ----------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| Yield       | `Yield = total success responses producer received / total requests producer sent` | How many requests return a valid response?                   |
-| Harvest     | `Harvest = number of requests the consumer received / total requests producer sent` | How many messages are received with a receive request?       |
-| Order       | `total position offsets of each received message`            | To which degree are messages out-of-order?                   |
-| Duplication | `number of duplicate messages consumer received`             | How often are duplicate messages received?                   |
+| Metric      | Definition                                                                           | Description                                                                                           |
+| ----------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| Yield       | `Yield = total success responses producer received / total requests producer sent`   | How many requests return a valid response?                                                            |
+| Harvest     | `Harvest = number of requests the consumer received / total requests producer sent`  | How many messages are received with a receive request?                                                |
+| Order       | `total position offsets of each received message`                                    | To which degree are messages out-of-order?                                                            |
+| Duplication | `number of duplicate messages consumer received`                                     | How often are duplicate messages received?                                                            |
 | E2e latency | Time elapsed from a message is sent from a producer to it is received by a consumer. | How long does it take for a message to traverse from the producer through the system to the consumer? |
 
+How to measure
+
+- Yield
+  - producer sends `p` messages
+  - producer receives `r` success responses
+  - `yield = r/p`
+- Harvest
+  - consumer receives `c` _dinstinct_ messages
+  - `harvest = c/p`
+- Order
+  - total position offsets of each received message
+- Duplication
+  - `duplicates(c) / c`
+- Latency
+  - producer sends a message at `t1`
+  - consumer receives a message at `t2`
+  - `t2 - t1`
+
 ### Parameters
+
+- P1 (`acks`): The number of acknowledgments the producer requires the leader to have received before considering a request complete.
+  - Possibe values: `{0, 1, all}`
+  - Default: `all`
+- P2 (`enable.idempotence`): When set to `true`, the producer will ensure that exactly one copy of each message is written in the stream.
+  - Possible values: `{true, false}`
+  - Default: `true`
+  - Prerequisite of `true`:
+    - `max.in.flight.requests.per.connection` <= 5 (default 5)
+    -
+- P3
 
 #### Producer Parameters
 
 | Parameter            | Possible value  |
 | -------------------- | --------------- |
-| `acks`               | `{0, 1, all}`   |
+| `acks`               |                 |
 | `enable.idempotence` | `{true, false}` |
 
 #### Broker Parameters
 
-| Parameter                    | Possible value |
-| ---------------------------- | -------------- |
-| `min.insync.replicas`        |                |
-| `default.replication.factor` |                |
+| Parameter                    | Possible value                           |
+| ---------------------------- | ---------------------------------------- |
+| `min.insync.replicas`        | only changes the results when `acks=all` |
+| `default.replication.factor` | 3 (default value)                        |
+
+### Steps
 
 ### When to test
 
