@@ -7,6 +7,11 @@ const clientConfigs = {
   brokers: [broker1, broker2, broker3],
 };
 
+const consumerConfigs = {
+  groupId: "group1",
+};
+
 module.exports = {
   clientConfigs,
+  consumerConfigs,
 };

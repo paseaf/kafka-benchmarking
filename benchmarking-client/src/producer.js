@@ -2,7 +2,10 @@ const { Kafka } = require("kafkajs");
 const { clientConfigs } = require("../configs");
 const Logger = require("./Logger");
 
-const logger = new Logger("producer");
+const logger = new Logger(
+  "producer",
+  "acks,idempotent,maxInFlightRequests,sendTime,id,errorCode"
+);
 logger.init();
 
 console.log("clientConfigs", clientConfigs);
@@ -11,6 +14,25 @@ const kafka = new Kafka({
   clientId: clientConfigs.clientId,
   brokers: clientConfigs.brokers,
 });
+async function storeBrokerMetadata(logFilePath, kafka) {
+  const admin = kafka.admin();
+  await admin.connect();
+
+  const { topics } = await admin.fetchTopicMetadata({ topics: ["test"] });
+  const brokerInfo = topics[0].partitions[0];
+
+  const fs = require("fs/promises");
+  await fs.writeFile(
+    `${logFilePath}.metadata.json`,
+    JSON.stringify(brokerInfo),
+    {
+      flag: "wx",
+    }
+  );
+
+  await admin.disconnect();
+}
+storeBrokerMetadata(logger.filePath, kafka);
 
 // prepare messages
 const movies = require("../dataset/movies.json");
@@ -61,7 +83,14 @@ async function runProducer(
 
   // send messages
   for (const message of messages) {
-    const messageExtended = { timestamp: Date.now(), ...message };
+    const sendTime = Date.now();
+    const messageExtended = {
+      acks,
+      idempotent,
+      maxInFlightRequests,
+      sendTime,
+      ...message,
+    };
     const responses = await producer.send({
       acks,
       topic: topic,
@@ -69,14 +98,9 @@ async function runProducer(
     });
     const sendErrorCode = responses[0].errorCode;
     // console.log(retVal);
-    logger.appendRow({
-      acks,
-      idempotent,
-      maxInFlightRequests,
-      timestamp: messageExtended.timestamp,
-      id: messageExtended.id,
-      errorCode: sendErrorCode,
-    });
+    logger.appendRow(
+      `${acks},${idempotent},${maxInFlightRequests},${sendTime},${message.id},${sendErrorCode}`
+    );
   }
 
   logger.end();

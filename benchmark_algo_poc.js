@@ -47,3 +47,9 @@ result.harvest = calculateHarvest(messagesReceived, messagesSent);
 result.order = calculateOrder(messagesReceived);
 result.duplicate = calculateDuplication(messagesReceived);
 result.latency = calculateLatency(messagesSent, messagesReceived);
+
+/**
+ * 1. client1 sends, all consume
+ * 2. client2 sends, all consume
+ * 3. client3 sends, all consume
+ */

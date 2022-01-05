@@ -10,6 +10,7 @@ class Logger {
     this.filePrefix = filePrefix;
     this.csvHeader = csvHeader;
     this.writable = null;
+    this.filePath = "";
   }
 
   async init() {
@@ -29,42 +30,20 @@ class Logger {
       `${date.getUTCMinutes()}` +
       "-" +
       `${date.getUTCSeconds() < 9 ? 0 : ""}` +
-      `${date.getUTCSeconds()}` +
-      ".csv";
+      `${date.getUTCSeconds()}`;
 
-    const fileName = `./logs/${this.filePrefix}-${datetime}`;
-    const logFd = await fs.open(fileName, "ax");
+    this.filePath = `./logs/${this.filePrefix}-${datetime}.csv`;
+    const logFd = await fs.open(this.filePath, "ax");
 
-    const writable = logFd.createWriteStream(fileName);
+    const writable = logFd.createWriteStream(this.filePath);
 
     this.writable = writable;
 
-    switch (this.filePrefix) {
-      case "producer":
-        this.writable.write(
-          "acks,idempotent,maxInFlightRequests,timestamp,id,errorCode\n"
-        );
-        break;
-      case "consumer":
-        throw Error("To be implemented");
-        break;
-      default:
-        throw Error("filePrefix must be producer or consumer");
-        break;
-    }
+    this.writable.write(this.csvHeader + "\n");
   }
 
-  appendRow({
-    acks,
-    idempotent,
-    maxInFlightRequests,
-    timestamp,
-    id,
-    errorCode,
-  }) {
-    this.writable.write(
-      `${acks},${idempotent},${maxInFlightRequests},${timestamp},${id},${errorCode}\n`
-    );
+  appendRow(row) {
+    this.writable.write(`${row}\n`);
   }
 
   end() {
