@@ -1,6 +1,8 @@
 const { Kafka } = require("kafkajs");
 const { clientConfigs, consumerConfigs } = require("../configs");
 
+// TODO: create topic with different broker settings here. Because consumers are run before producers.
+// https://kafka.js.org/docs/admin#create-topics
 const kafka = new Kafka({
   clientId: clientConfigs.clientId,
   brokers: clientConfigs.brokers,

@@ -83,10 +83,12 @@ How to measure
   - total position offsets of each received message
 - Duplication
   - `duplicates(c) / c`
-- Latency
+- E2e Latency
   - producer sends a message at `t1`
   - consumer receives a message at `t2`
   - `t2 - t1`
+- Producer latency
+  - because `acks` doesn't affect the e2e latency
 
 ### Parameters
 
