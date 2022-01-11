@@ -68,7 +68,7 @@ resource "google_compute_firewall" "client_subnet_rules" {
 }
 
 resource "google_compute_instance" "kafka1" {
-  name         = "kafka-broker-1"
+  name         = "kafka1"
   machine_type = var.kafka_machine_type
   zone         = var.kafka1_zone
   tags         = ["kafka-cluster"]
@@ -90,7 +90,7 @@ resource "google_compute_instance" "kafka1" {
 }
 
 resource "google_compute_instance" "kafka2" {
-  name         = "kafka-broker-2"
+  name         = "kafka2"
   machine_type = var.kafka_machine_type
   zone         = var.kafka2_zone
   tags         = ["kafka-cluster"]
@@ -112,7 +112,7 @@ resource "google_compute_instance" "kafka2" {
 }
 
 resource "google_compute_instance" "kafka3" {
-  name         = "kafka-broker-3"
+  name         = "kafka3"
   machine_type = var.kafka_machine_type
   zone         = var.kafka3_zone
   tags         = ["kafka-cluster"]
@@ -134,7 +134,7 @@ resource "google_compute_instance" "kafka3" {
 }
 
 resource "google_compute_instance" "zookeeper1" {
-  name         = "zookeeper-broker-1"
+  name         = "zookeeper1"
   machine_type = var.zookeeper_machine_type
   zone         = var.zookeeper1_zone
   tags         = ["zookeeper-cluster"]
@@ -156,7 +156,7 @@ resource "google_compute_instance" "zookeeper1" {
 }
 
 resource "google_compute_instance" "zookeeper2" {
-  name         = "zookeeper-broker-2"
+  name         = "zookeeper2"
   machine_type = var.zookeeper_machine_type
   zone         = var.zookeeper2_zone
   tags         = ["zookeeper-cluster"]
@@ -178,7 +178,7 @@ resource "google_compute_instance" "zookeeper2" {
 }
 
 resource "google_compute_instance" "zookeeper3" {
-  name         = "zookeeper-broker-3"
+  name         = "zookeeper3"
   machine_type = var.zookeeper_machine_type
   zone         = var.zookeeper3_zone
   tags         = ["zookeeper-cluster"]

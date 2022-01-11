@@ -9,3 +9,8 @@ hostnames:
   - name
   - private_ip
   - public_ip
+keyed_groups:
+  - key: zone
+groups:
+  kafka_brokers: inventory_hostname.startswith('kafka')
+  zookeeper_servers: inventory_hostname.startswith('zookeeper')
