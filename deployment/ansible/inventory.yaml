@@ -1,9 +1,0 @@
-# TODO import terraform output as vars
-# TODO configure kafka cluster with guide
-# - inventory https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#intro-inventory
-# - getting started https://docs.ansible.com/ansible/latest/user_guide/index.html
-all:
-  children:
-    kafka_brokers: {}
-    ungrouped: {}
-    zookeeper_servers: {}

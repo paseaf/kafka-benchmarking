@@ -1,0 +1,11 @@
+# inventory.compute.gcp.yml
+---
+plugin: gcp_compute
+projects:
+  - cc-ws-2122
+service_account_file: ~/.gcp-key.json
+auth_kind: serviceaccount
+hostnames:
+  - name
+  - private_ip
+  - public_ip

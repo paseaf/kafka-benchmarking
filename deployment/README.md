@@ -13,12 +13,19 @@ Prerequisite:
 - install terraform CLI
 - create and download a GCP key file following [this guide](https://learn.hashicorp.com/tutorials/terraform/google-cloud-platform-build?in=terraform/gcp-get-started)
 - move the key file to `~/.keys/gcp-key.json`
-- Create a `terraform.tfvars` file with the following content
+- Update `terraform.tfvars` file with the following content
   ```bash
   project                  = "<GCP_PROJECT_ID>"
   credentials_file         = "<PATH_TO_GCP_KEY_FILE>"
   ```
-- install Ansible following [this guide](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-on-specific-operating-systems)
+- install Ansible with `apt` following [this guide](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-on-specific-operating-systems)
+- install python 3.9+
+  ```bash
+  sudo apt install python3.9
+  sudo apt install python-is-python3
+  sudo apt install python3-pip
+  ```
+- install and configure ansible GCP support following [here](https://docs.ansible.com/ansible/latest/scenario_guides/guide_gce.html)
 
 ## Set up a ZooKeeper Ensemble of 3 Servers
 
