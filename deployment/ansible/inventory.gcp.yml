@@ -10,7 +10,7 @@ hostnames:
 keyed_groups:
   - key: zone
 groups:
-  # kafka_brokers: inventory_hostname.startswith('kafka')
+  kafka_brokers: inventory_hostname.startswith('kafka')
   zookeeper_servers: inventory_hostname.startswith('zookeeper')
 compose:
   ansible_host: networkInterfaces[0].accessConfigs[0].natIP

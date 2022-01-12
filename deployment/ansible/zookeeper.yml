@@ -75,4 +75,4 @@
   tasks:
     - name: Start ZooKeeper
       command: /usr/local/zookeeper/bin/zkServer.sh start
-      run_once: true
+      ignore_errors: true

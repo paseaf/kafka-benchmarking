@@ -1,2 +1,5 @@
-- name: Set up zookeeper_servers
+- name: Set up ZooKeeper Ensemble
   import_playbook: zookeeper.yml
+
+- name: Set up Kafka Brokers
+  import_playbook: kafka.yml

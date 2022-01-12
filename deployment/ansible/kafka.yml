@@ -1,0 +1,54 @@
+- name: Set up a Kafka cluster
+  hosts: kafka_brokers
+
+  tasks:
+    - name: upgrade all packages
+      become: yes
+      apt:
+        name: "*"
+        update_cache: yes
+        state: latest
+
+    - name: Install Open JDK 11
+      become: yes
+      apt:
+        name: openjdk-11-jdk-headless
+        state: latest
+
+    - name: create a directory for Kafka
+      become: yes
+      file:
+        path: /usr/local/kafka
+        state: directory
+        owner: ansible
+        group: ansible
+        mode: 0755
+
+    - name: Install Kafka 2.8.1
+      unarchive:
+        remote_src: yes
+        src: https://archive.apache.org/dist/kafka/2.8.1/kafka_2.13-2.8.1.tgz
+        dest: /usr/local/kafka
+        mode: 0755
+        extra_opts: [--strip-components=1]
+
+    - name: Create a folder for Kafka log
+      file:
+        path: /tmp/kafka-logs
+        state: directory
+
+- name: Config broker 1
+  import_playbook: kafka1.yml
+
+- name: Config broker 2
+  import_playbook: kafka2.yml
+
+- name: Config broker 3
+  import_playbook: kafka3.yml
+
+- name: start all Kafka Brokers
+  hosts: kafka_brokers
+  tasks:
+    - name: Start Kafka
+      command: /usr/local/kafka/bin/kafka-server-start.sh -daemon /usr/local/kafka/config/server.properties
+      run_once: true

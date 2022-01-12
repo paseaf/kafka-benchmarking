@@ -1,0 +1,8 @@
+- name: Set up a broker configs file for Kafka Broker 3
+  hosts: kafka3
+
+  tasks:
+    - name: Copy server properties file
+      copy:
+        src: ./kafka_server3.properties
+        dest: /usr/local/kafka/config/server.properties
