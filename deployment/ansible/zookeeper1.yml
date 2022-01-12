@@ -3,7 +3,6 @@
 
   tasks:
     - name: Create myid file
-      become: yes
-      ansible.builtin.copy:
+      copy:
         content: 1
         dest: /var/lib/zookeeper/myid
