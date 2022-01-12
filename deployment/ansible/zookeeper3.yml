@@ -1,0 +1,9 @@
+- name: Set up a myid file for ZooKeeper server 3
+  hosts: zookeeper3
+
+  tasks:
+    - name: Create myid file
+      become: yes
+      ansible.builtin.copy:
+        content: 3
+        dest: /var/lib/zookeeper/myid

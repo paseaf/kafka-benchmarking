@@ -1,0 +1,61 @@
+- name: Set up a ZooKeeper ensemble
+  hosts: zookeeper_servers
+
+  tasks:
+    - name: upgrade all packages
+      become: yes
+      apt:
+        name: "*"
+        state: latest
+
+    - name: Install Open JDK 11
+      become: yes
+      apt:
+        name: openjdk-11-jdk-headless
+        state: latest
+
+    - name: create a directory for ZooKeeper
+      become: yes
+      file:
+        path: /usr/local/zookeeper
+        state: directory
+        mode: 0755
+
+    - name: Install ZooKeeper 3.5.9
+      become: yes
+      ansible.builtin.unarchive:
+        remote_src: yes
+        src: https://dlcdn.apache.org/zookeeper/zookeeper-3.5.9/apache-zookeeper-3.5.9-bin.tar.gz
+        dest: /usr/local/zookeeper
+        mode: 0755
+        extra_opts: [--strip-components=1]
+
+    - name: Set ZooKeeper JVM heap size to 3GB
+      become: yes
+      ansible.builtin.copy:
+        content: |
+          export ZK_SERVER_HEAP=3072
+          export SERVER_JVMFLAGS="-Xms${ZK_SERVER_HEAP}m $SERVER_JVMFLAGS"
+        dest: /usr/local/zookeeper/conf/zookeeper-env.sh
+
+    - name: Create ZooKeeper config
+      become: yes
+      ansible.builtin.copy:
+        content: |
+          tickTime=2000
+          dataDir=/var/lib/zookeeper/
+          clientPort=2181
+          initLimit=5
+          syncLimit=2
+          server.1=10.1.0.11:2888:3888
+          server.2=10.1.0.12:2888:3888
+          server.3=10.1.0.13:2888:3888
+        dest: /usr/local/zookeeper/conf/zoo.cfg
+# - name: add myid to zookeeper 1
+#   import_playbook: zookeeper1.yml
+
+# - name: add myid to zookeeper 2
+#   import_playbook: zookeeper2.yml
+
+# - name: add myid to zookeeper 3
+#   import_playbook: zookeeper3.yml

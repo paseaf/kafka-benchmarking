@@ -1,0 +1,2 @@
+- name: Set up zookeeper_servers
+  import_playbook: zookeeper.yml
