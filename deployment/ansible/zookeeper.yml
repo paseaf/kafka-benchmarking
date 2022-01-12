@@ -15,7 +15,7 @@
         name: openjdk-11-jdk-headless
         state: latest
 
-    - name: create a directory for ZooKeeper
+    - name: Create a directory for ZooKeeper
       become: yes
       file:
         path: /usr/local/zookeeper
@@ -32,7 +32,7 @@
         mode: 0755
         extra_opts: [--strip-components=1]
 
-    - name: Set ZooKeeper JVM heap size to 3GB
+    - name: Set ZooKeeper JVM heap size to 3GB (for 4GB machines)
       copy:
         content: |
           export ZK_SERVER_HEAP=3072
@@ -52,7 +52,7 @@
           server.3=10.1.0.13:2888:3888
         dest: /usr/local/zookeeper/conf/zoo.cfg
 
-    - name: create a directory for myid
+    - name: Create a directory for myid
       become: yes
       file:
         path: /var/lib/zookeeper
@@ -61,16 +61,16 @@
         owner: ansible
         group: ansible
 
-- name: add myid to zookeeper 1
+- name: Add myid to zookeeper 1
   import_playbook: zookeeper1.yml
 
-- name: add myid to zookeeper 2
+- name: Add myid to zookeeper 2
   import_playbook: zookeeper2.yml
 
-- name: add myid to zookeeper 3
+- name: Add myid to zookeeper 3
   import_playbook: zookeeper3.yml
 
-- name: start all ZooKeeper servers
+- name: Start all ZooKeeper servers
   hosts: zookeeper_servers
   tasks:
     - name: Start ZooKeeper
