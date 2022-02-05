@@ -9,27 +9,53 @@ https://kafka.apache.org/28/documentation.html#zk
 
 Follow the steps below to deploy and run Kafka cluster on GCP with our automated scripts.
 
-### Prerequisite
+### Prepare Deployment Machine
 
-Set up [Terraform](https://www.terraform.io/) to provision benchmark infrastructure on GCP:
+Follow this section to set up Terraform and Ansible on your deployment machine (We used Ubuntu 20.04 LTS).
 
-- Install [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) and `gcloud init` it with your GCP project
+#### Set up GCP and Terraform
 
-- Install [Terraform CLI](https://learn.hashicorp.com/tutorials/terraform/install-cli?in=terraform/gcp-get-started)
+We use Terraform to provision benchmark machines on GCP.
 
-- Create and download a GCP key file (in JSON) following [this guide](https://learn.hashicorp.com/tutorials/terraform/google-cloud-platform-build?in=terraform/gcp-get-started)
+1. Move the _service account key_ in step 1 to `./gcp-key.json`.
+   Set up `gcloud` CLI and [Terraform](https://www.terraform.io/) to provision benchmark infrastructure on GCP:
 
-- Move the key file to `~/.gcp-key.json`
+1. Install [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) and `gcloud init` it with your GCP project
 
-- Update `terraform.tfvars` file with the following content
-  ```bash
-  project                  = "<GCP_PROJECT_ID>"
-  credentials_file         = "~/.keys/gcp-key.json"
-  ```
+1. Install [Terraform CLI](https://learn.hashicorp.com/tutorials/terraform/install-cli?in=terraform/gcp-get-started)
+
+1. Create and download a GCP _service account key_ (in JSON) following [_Set up GCP_ in this guide](https://learn.hashicorp.com/tutorials/terraform/google-cloud-platform-build?in=terraform/gcp-get-started).\
+   Terraform will use it to manage your GCP resources.
+
+1. Move the key file to `~/.gcp-key.json`
+
+1. Update `terraform/terraform.tfvars` file with the following content
+
+   ```bash
+   project                  = "<GCP_project_ID>"
+   credentials_file         = "<path_to_GCP_key_file>"
+   ```
+
+1. Verify if your Terraform is successfully set up.
+   ```bash
+   cd terraform
+   terraform init # initialize the working directory
+   terraform plan # preview the changes
+   ```
+   You should not see any error message in the output.
+
+#### Set up Ansible
 
 Set up [Ansible](https://www.ansible.com/) to configure our benchmark VMs
 
-- Install Ansible with `apt` following [this guide](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-on-specific-operating-systems). (We used Ansible verison 2.12.1)
+1. Install Ansible
+   ```bash
+   sudo apt update
+   sudo apt install software-properties-common
+   sudo add-apt-repository --yes --update ppa:ansible/ansible
+   sudo apt install ansible
+   ```
+   For other distros follow [this guide](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-on-specific-operating-systems). (We used Ansible verison 2.12.1)
 
 - Install Python (We used Python 3.9)
 
@@ -48,19 +74,20 @@ Set up [Ansible](https://www.ansible.com/) to configure our benchmark VMs
 
   This allows us to generate Ansible inventory file dynamically by reading from GCP.
 
-- Create and configure an ssh key for Ansible to connect to GCP.
+- Create an SSH key and add it to your GCP project.
 
   ```bash
   # create an ssh key
-  ssh-keygen -t rsa -b 4096 -C "ansible" -f ~/.ssh/ansible -N ""
-  # add the ssh key to project ssh-keys
-  public_key=$(cat ~/.ssh/ansible.pub)
+  ssh-keygen -t rsa -b 4096 -C "ansible" -f ./ansible/gcp_key -N ""
+
+  # add the ssh key to GCP project
+  public_key=$(cat ./ansible/gcp_key.pub)
   echo "ansible":"$public_key" > ./temp-keyfile
   gcloud compute project-info add-metadata --metadata-from-file=ssh-keys=./temp-keyfile
   rm ./temp-keyfile
   ```
 
-- Update inventory file `inventory.gcp.yml`, `projects` property with your GCP project ID
+- Open inventory file `ansible/inventory.gcp.yml`, Update `projects` property with your GCP project ID
 
   ```bash
   # ...
@@ -75,11 +102,11 @@ Set up [Ansible](https://www.ansible.com/) to configure our benchmark VMs
 
 1. Create VMs on GCP
 
-   In `/deployment/` directory:
+   In `/deployment/terraform` directory:
 
    ```bash
    terraform init
-   terraform apply # enter yes when prompt
+   terraform apply
    ```
 
    You should see the external IP addresses of all VMs in output.

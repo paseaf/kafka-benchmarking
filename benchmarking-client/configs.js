@@ -1,6 +1,6 @@
-const broker1 = "34.159.233.148:9092";
-const broker2 = "35.242.243.122:9092";
-const broker3 = "34.89.185.58:9092";
+const broker1 = "10.1.0.21:9092";
+const broker2 = "10.1.0.22:9092";
+const broker3 = "10.1.0.23:9092";
 
 const clientConfigs = {
   clientId: "client1", // change to client2, client3 for relevant clients

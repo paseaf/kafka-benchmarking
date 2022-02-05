@@ -6,17 +6,19 @@
 
 We want to benchmark the consistency behaviors (_yield_ and _harvest_) of Apache Kafka in the cloud, and find out what parameters could affect the consistency behaviors.
 
+Load producers/generators don't need to be included into the measurement. (don't stress stress generators) They only increase the stress.
+
+- e2e latency
+- out of order
+  - 50 msgs/5ms (stress)
+
+Kafka: how many partitions?
+
 ## Benchmark System Setup
 
 ### Design
 
 ![Benchmark system setup](diagrams/benchmark-system-setup.drawio.svg)
-
-What each client does:
-
-1. producer 1 sends data to its Broker
-2. producer 2, 3 consumes data from Broker 2, 3, respectively
-3.
 
 ## Kafka Cluster Setup
 
