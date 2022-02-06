@@ -51,4 +51,3 @@
   tasks:
     - name: Start Kafka
       command: /usr/local/kafka/bin/kafka-server-start.sh -daemon /usr/local/kafka/config/server.properties
-      run_once: true

@@ -5,38 +5,32 @@ ZooKeeper version: 3.5.9
 https://kafka.apache.org/28/documentation.html#zk
 ![Deploy Kafka on GCP](../diagrams/deploy-kafka-on-gcp.drawio.svg)
 
-## Deploy Kafka Cluster
-
-Follow the steps below to deploy and run Kafka cluster on GCP with our automated scripts.
+## Deploy System under Test (SUT) to GCP
 
 ### Prepare Deployment Machine
 
-Follow this section to set up Terraform and Ansible on your deployment machine (We used Ubuntu 20.04 LTS).
+We use Terraform and Ansible to deploy the cluster. Install them on your deployment machine as follows. (We used Ubuntu 20.04 LTS).
 
-#### Set up GCP and Terraform
+#### Install and Configure Terraform
 
-We use Terraform to provision benchmark machines on GCP.
-
-1. Move the _service account key_ in step 1 to `./gcp-key.json`.
-   Set up `gcloud` CLI and [Terraform](https://www.terraform.io/) to provision benchmark infrastructure on GCP:
+Terraform is used to provision benchmark machines on GCP.
+Install it as follows:
 
 1. Install [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) and `gcloud init` it with your GCP project
 
-1. Install [Terraform CLI](https://learn.hashicorp.com/tutorials/terraform/install-cli?in=terraform/gcp-get-started)
+2. Install [Terraform CLI](https://learn.hashicorp.com/tutorials/terraform/install-cli?in=terraform/gcp-get-started)
 
-1. Create and download a GCP _service account key_ (in JSON) following [_Set up GCP_ in this guide](https://learn.hashicorp.com/tutorials/terraform/google-cloud-platform-build?in=terraform/gcp-get-started).\
-   Terraform will use it to manage your GCP resources.
+3. Create and download a GCP _service account key_ (in JSON) following [_Set up GCP_ in this guide](https://learn.hashicorp.com/tutorials/terraform/google-cloud-platform-build?in=terraform/gcp-get-started).\
+   Terraform will use it to manage your GCP resources. Move the key file to `~/.gcp-key.json`
 
-1. Move the key file to `~/.gcp-key.json`
-
-1. Update `terraform/terraform.tfvars` file with the following content
+4. Update `terraform/terraform.tfvars` file with the following content
 
    ```bash
    project                  = "<GCP_project_ID>"
    credentials_file         = "<path_to_GCP_key_file>"
    ```
 
-1. Verify if your Terraform is successfully set up.
+5. Verify if your Terraform is successfully set up.
    ```bash
    cd terraform
    terraform init # initialize the working directory
@@ -78,10 +72,10 @@ Set up [Ansible](https://www.ansible.com/) to configure our benchmark VMs
 
   ```bash
   # create an ssh key
-  ssh-keygen -t rsa -b 4096 -C "ansible" -f ./ansible/gcp_key -N ""
+  ssh-keygen -t rsa -b 4096 -C "ansible" -f ~/.ssh/ansible -N ""
 
   # add the ssh key to GCP project
-  public_key=$(cat ./ansible/gcp_key.pub)
+  public_key=$(cat ~/.ssh/ansible.pub)
   echo "ansible":"$public_key" > ./temp-keyfile
   gcloud compute project-info add-metadata --metadata-from-file=ssh-keys=./temp-keyfile
   rm ./temp-keyfile
@@ -96,25 +90,26 @@ Set up [Ansible](https://www.ansible.com/) to configure our benchmark VMs
   # ...
   ```
 
-- :tada: Congratulations! You can now use Terraform and Ansible to provision and configure the project.
+- :tada: Congratulations! You can now use Terraform and Ansible to provision and configure the SUT.
 
 ### Provision and Configure SUT
 
 1. Create VMs on GCP
 
-   In `/deployment/terraform` directory:
+   In `/deployment/terraform` directory, run:
 
    ```bash
-   terraform init
    terraform apply
    ```
 
-   You should see the external IP addresses of all VMs in output.
+   You should see the external IP addresses of all VMs in the output after execution.
 
-2. Install and run ZooKeeper, Kafka
+2. Review the inventory file `/deployment/ansible/inventory.gcp.yml` and adapt `compose` property if applicable.
+3. Install and run ZooKeeper, Kafka
+
+   In `/deployment/ansible` directory, run:
 
    ```bash
-   cd ansible
    ansible-playbook main.yml
    ```
 
