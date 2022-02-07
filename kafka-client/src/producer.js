@@ -1,7 +1,7 @@
 const { Kafka } = require("kafkajs");
 const { clientConfigs } = require("../configs");
 const Logger = require("./Logger");
-
+// TODO stress the brokers by improving throughput (e.g. 10 msgs/ms)
 const logger = new Logger(
   "producer",
   "acks,idempotent,maxInFlightRequests,sendTime,id,errorCode"
@@ -14,9 +14,15 @@ const kafka = new Kafka({
   clientId: clientConfigs.clientId,
   brokers: clientConfigs.brokers,
 });
+
 async function storeBrokerMetadata(logFilePath, kafka) {
   const admin = kafka.admin();
   await admin.connect();
+
+  // Create topic
+  await admin.createTopics({
+    topics: [{ topic: "test", numPartitions: 1, replicationFactor: 3 }],
+  });
 
   const { topics } = await admin.fetchTopicMetadata({ topics: ["test"] });
   const brokerInfo = topics[0].partitions[0];

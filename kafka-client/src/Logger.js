@@ -1,4 +1,8 @@
 const fs = require("fs/promises");
+const fsSync = require("fs");
+const path = require("path");
+
+const logDir = "/home/ansible/logs";
 
 class Logger {
   /**
@@ -32,7 +36,11 @@ class Logger {
       `${date.getUTCSeconds() < 9 ? 0 : ""}` +
       `${date.getUTCSeconds()}`;
 
-    this.filePath = `./logs/${this.filePrefix}-${datetime}.csv`;
+    if (!fsSync.existsSync(logDir)) {
+      fsSync.mkdirSync(logDir);
+    }
+
+    this.filePath = path.join(logDir, `${this.filePrefix}-${datetime}.csv`);
     const logFd = await fs.open(this.filePath, "ax");
 
     const writable = logFd.createWriteStream(this.filePath);
