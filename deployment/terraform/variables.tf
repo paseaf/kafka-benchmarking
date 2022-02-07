@@ -74,3 +74,34 @@ variable "kafka_disk_size" {
 variable "kafka_disk_type" {
   default = "pd-balanced"
 }
+
+# ------- Kafka Client
+variable "client1_ip" {
+  default = "10.2.0.11"
+}
+variable "client1_zone" {
+  default = "europe-central2-a"
+}
+variable "client2_ip" {
+  default = "10.2.0.12"
+}
+variable "client2_zone" {
+  default = "europe-central2-b"
+}
+variable "client3_ip" {
+  default = "10.2.0.13"
+}
+variable "client3_zone" {
+  default = "europe-central2-c"
+}
+
+variable "client_machine_type" {
+  default = "e2-medium"
+}
+variable "client_disk_size" {
+  default     = 20
+  description = "size in GB"
+}
+variable "client_disk_type" {
+  default = "pd-ssd"
+}

@@ -203,3 +203,69 @@ resource "google_compute_instance" "zookeeper3" {
     }
   }
 }
+
+resource "google_compute_instance" "client1" {
+  name         = "client1"
+  machine_type = var.client_machine_type
+  zone         = var.client1_zone
+  tags         = ["client-cluster"]
+
+  boot_disk {
+    initialize_params {
+      image = var.ubuntu_20_image
+      size  = var.client_disk_size
+      type  = var.client_disk_type
+    }
+  }
+
+  network_interface {
+    subnetwork = google_compute_subnetwork.client_subnet.name
+    network_ip = var.client1_ip
+    access_config {
+    }
+  }
+}
+
+resource "google_compute_instance" "client2" {
+  name         = "client2"
+  machine_type = var.client_machine_type
+  zone         = var.client2_zone
+  tags         = ["client-cluster"]
+
+  boot_disk {
+    initialize_params {
+      image = var.ubuntu_20_image
+      size  = var.client_disk_size
+      type  = var.client_disk_type
+    }
+  }
+
+  network_interface {
+    subnetwork = google_compute_subnetwork.client_subnet.name
+    network_ip = var.client2_ip
+    access_config {
+    }
+  }
+}
+
+resource "google_compute_instance" "client3" {
+  name         = "client3"
+  machine_type = var.client_machine_type
+  zone         = var.client3_zone
+  tags         = ["client-cluster"]
+
+  boot_disk {
+    initialize_params {
+      image = var.ubuntu_20_image
+      size  = var.client_disk_size
+      type  = var.client_disk_type
+    }
+  }
+
+  network_interface {
+    subnetwork = google_compute_subnetwork.client_subnet.name
+    network_ip = var.client3_ip
+    access_config {
+    }
+  }
+}
