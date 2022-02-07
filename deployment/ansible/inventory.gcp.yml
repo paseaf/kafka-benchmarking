@@ -12,6 +12,7 @@ keyed_groups:
 groups:
   kafka_brokers: inventory_hostname.startswith('kafka')
   zookeeper_servers: inventory_hostname.startswith('zookeeper')
+  kafka_clients: inventory_hostname.startswith('client')
 compose:
   # External IP
   # ansible_host: networkInterfaces[0].accessConfigs[0].natIP

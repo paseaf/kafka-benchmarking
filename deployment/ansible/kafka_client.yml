@@ -1,0 +1,38 @@
+- name: Set up kafka clients
+  hosts: kafka_clients
+
+  tasks:
+    - name: upgrade all packages
+      become: yes
+      apt:
+        name: "*"
+        update_cache: yes
+        state: latest
+
+    - name: Prepare for installation
+      become: yes
+      shell: curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
+      args:
+        executable: /bin/bash
+
+    - name: Install latest Node.js v16.x
+      become: yes
+      apt:
+        name: nodejs
+        state: latest
+
+    - name: Remove destination dir if exists
+      file:
+        path: /home/ansible/kafka-client
+        state: absent
+
+    - name: Copy kafka client code to clients
+      copy:
+        src: ../../kafka-client
+        dest: /home/ansible/
+        mode: preserve
+
+    - name: install npm packages
+      command: npm install
+      args:
+        chdir: /home/ansible/kafka-client

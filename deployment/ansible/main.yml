@@ -3,3 +3,6 @@
 
 - name: Set up Kafka Brokers
   import_playbook: kafka.yml
+
+- name: Set up Kafka Clients
+  import_playbook: kafka_client.yml
