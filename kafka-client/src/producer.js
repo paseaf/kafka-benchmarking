@@ -1,7 +1,6 @@
 const { Kafka } = require("kafkajs");
 const { clientConfigs } = require("../configs");
 const Logger = require("./Logger");
-// TODO stress the brokers by improving throughput (e.g. 10 msgs/ms)
 const logger = new Logger(
   "producer",
   "acks,idempotent,maxInFlightRequests,sendTime,id,errorCode"
@@ -13,6 +12,8 @@ console.log("clientConfigs", clientConfigs);
 const kafka = new Kafka({
   clientId: clientConfigs.clientId,
   brokers: clientConfigs.brokers,
+  connectionTimeout: 5000,
+  authenticationTimeout: 5000,
 });
 
 async function storeBrokerMetadata(logFilePath, kafka) {
@@ -60,14 +61,14 @@ async function runBenchmark(topic, messages) {
 
     // { acks: -1, idempotent: false, maxInFlightRequests: null },
     // { acks: -1, idempotent: false, maxInFlightRequests: 1 },
-    { acks: -1, idempotent: false, maxInFlightRequests: 10 },
+    // { acks: -1, idempotent: false, maxInFlightRequests: 10 },
 
     // { acks: 0, idempotent: false, maxInFlightRequests: null },
     // { acks: 0, idempotent: false, maxInFlightRequests: 1 },
     // { acks: 0, idempotent: false, maxInFlightRequests: 10 },
 
     // { acks: 1, idempotent: false, maxInFlightRequests: null },
-    // { acks: 1, idempotent: false, maxInFlightRequests: 1 },
+    { acks: 1, idempotent: false, maxInFlightRequests: 1 },
     // { acks: 1, idempotent: false, maxInFlightRequests: 10 },
   ];
 
@@ -89,28 +90,30 @@ async function runProducer(
   await producer.connect();
 
   // send messages
-  const extendedMessages = messages
-    .map((message) => {
-      return { acks, idempotent, maxInFlightRequests, ...message };
+  await Promise.all(
+    messages.map(async (message) => {
+      const sendTime = Date.now();
+      const responses = await producer.send({
+        acks,
+        topic: topic,
+        messages: [
+          {
+            value: JSON.stringify({
+              acks,
+              idempotent,
+              maxInFlightRequests,
+              sendTime,
+              ...message,
+            }),
+          },
+        ],
+      });
+      const sendErrorCode = responses[0].errorCode;
+      logger.appendRow(
+        `${acks},${idempotent},${maxInFlightRequests},${sendTime},${message.id},${sendErrorCode}`
+      );
     })
-    .map(JSON.stringify);
-
-  const times = [];
-  for (const extendedMessage of extendedMessages) {
-    const sendTime = Date.now() + "";
-    const responses = await producer.send({
-      acks,
-      topic: topic,
-      messages: [{ key: sendTime, value: extendedMessage }],
-    });
-    const sendErrorCode = responses[0].errorCode;
-    times.push(sendTime);
-    // logger.appendRow(
-    //   // `${acks},${idempotent},${maxInFlightRequests},${sendTime},${extendedMessage.id},${sendErrorCode}`
-    //   `${acks},${idempotent},${maxInFlightRequests},${sendTime},${extendedMessage.id},${sendErrorCode}`
-    // );
-  }
-  console.log(times);
+  );
   logger.end();
   await producer.disconnect();
 }
