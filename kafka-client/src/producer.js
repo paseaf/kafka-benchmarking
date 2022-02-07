@@ -54,13 +54,13 @@ runBenchmark("test", messagesToSend);
 // ----------------------
 async function runBenchmark(topic, messages) {
   const configCombinations = [
-    { acks: -1, idempotent: true, maxInFlightRequests: null },
+    // { acks: -1, idempotent: true, maxInFlightRequests: null },
     // { acks: -1, idempotent: true, maxInFlightRequests: 1 },
     // { acks: -1, idempotent: true, maxInFlightRequests: 10 },
 
     // { acks: -1, idempotent: false, maxInFlightRequests: null },
     // { acks: -1, idempotent: false, maxInFlightRequests: 1 },
-    // { acks: -1, idempotent: false, maxInFlightRequests: 10 },
+    { acks: -1, idempotent: false, maxInFlightRequests: 10 },
 
     // { acks: 0, idempotent: false, maxInFlightRequests: null },
     // { acks: 0, idempotent: false, maxInFlightRequests: 1 },
@@ -74,6 +74,7 @@ async function runBenchmark(topic, messages) {
   for (const configCombination of configCombinations) {
     console.log("Running with configs combination:\n", configCombination);
     await runProducer(topic, messages, configCombination).catch(console.error);
+    console.log("Done!");
   }
 }
 
@@ -88,27 +89,28 @@ async function runProducer(
   await producer.connect();
 
   // send messages
-  for (const message of messages) {
-    const sendTime = Date.now();
-    const messageExtended = {
-      acks,
-      idempotent,
-      maxInFlightRequests,
-      sendTime,
-      ...message,
-    };
+  const extendedMessages = messages
+    .map((message) => {
+      return { acks, idempotent, maxInFlightRequests, ...message };
+    })
+    .map(JSON.stringify);
+
+  const times = [];
+  for (const extendedMessage of extendedMessages) {
+    const sendTime = Date.now() + "";
     const responses = await producer.send({
       acks,
       topic: topic,
-      messages: [{ value: JSON.stringify(messageExtended) }],
+      messages: [{ key: sendTime, value: extendedMessage }],
     });
     const sendErrorCode = responses[0].errorCode;
-    // console.log(retVal);
-    logger.appendRow(
-      `${acks},${idempotent},${maxInFlightRequests},${sendTime},${message.id},${sendErrorCode}`
-    );
+    times.push(sendTime);
+    // logger.appendRow(
+    //   // `${acks},${idempotent},${maxInFlightRequests},${sendTime},${extendedMessage.id},${sendErrorCode}`
+    //   `${acks},${idempotent},${maxInFlightRequests},${sendTime},${extendedMessage.id},${sendErrorCode}`
+    // );
   }
-
+  console.log(times);
   logger.end();
   await producer.disconnect();
 }
