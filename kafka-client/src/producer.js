@@ -1,11 +1,13 @@
 const fs = require("fs/promises");
+const process = require("process");
 const { Kafka } = require("kafkajs");
 const { clientConfigs } = require("../configs");
 const TOPIC = "benchmark";
 const Logger = require("./Logger");
 const logger = new Logger({
   filePrefix: "producer",
-  csvHeader: "acks,idempotent,maxInFlightRequests,sendTime,id,errorCode",
+  csvHeader:
+    "acks,idempotent,maxInFlightRequests,sendTime,id,success,errorMessage",
 });
 logger.init();
 
@@ -14,8 +16,8 @@ console.log("clientConfigs", clientConfigs);
 const kafka = new Kafka({
   clientId: clientConfigs.clientId,
   brokers: clientConfigs.brokers,
-  connectionTimeout: 5000,
-  authenticationTimeout: 5000,
+  connectionTimeout: 10000,
+  authenticationTimeout: 10000,
 });
 
 const movies = require("../dataset/movies.json");
@@ -23,19 +25,22 @@ const messagesToSend = prepareMessages(movies);
 
 // Main
 prepareTopic(kafka)
-  .then(function logMetadata(topicMetadata) {
-    const { topics } = topicMetadata;
-    const brokerInfo = topics[0].partitions[0];
+  .then(logMetadata)
+  .then(() => runBenchmark(TOPIC, messagesToSend))
+  .then(() => {
+    logger.end();
+    process.exit();
+  });
 
-    fs.writeFile(
-      `${logger.filePath}.metadata.json`,
-      JSON.stringify(brokerInfo),
-      {
-        flag: "wx",
-      }
-    );
-  })
-  .then(() => runBenchmark(TOPIC, messagesToSend));
+// ======== Util functions =========
+function logMetadata(topicMetadata) {
+  const { topics } = topicMetadata;
+  const brokerInfo = topics[0].partitions[0];
+
+  fs.writeFile(`${logger.filePath}.metadata.json`, JSON.stringify(brokerInfo), {
+    flag: "wx",
+  });
+}
 
 async function prepareTopic(kafka) {
   const admin = kafka.admin();
@@ -113,27 +118,33 @@ async function runProducer(
   await Promise.all(
     messages.map(async (message) => {
       const sendTime = Date.now();
-      const responses = await producer.send({
-        acks,
-        topic: topic,
-        messages: [
-          {
-            value: JSON.stringify({
-              acks,
-              idempotent,
-              maxInFlightRequests,
-              sendTime,
-              ...message,
-            }),
-          },
-        ],
-      });
-      const sendErrorCode = responses[0].errorCode;
+      let success;
+      let errorMessage = "";
+      try {
+        await producer.send({
+          acks,
+          topic: topic,
+          messages: [
+            {
+              value: JSON.stringify({
+                acks,
+                idempotent,
+                maxInFlightRequests,
+                sendTime,
+                ...message,
+              }),
+            },
+          ],
+        });
+        success = true;
+      } catch (e) {
+        errorMessage = e.message;
+        success = false;
+      }
       logger.appendRow(
-        `${acks},${idempotent},${maxInFlightRequests},${sendTime},${message.id},${sendErrorCode}`
+        `${acks},${idempotent},${maxInFlightRequests},${sendTime},${message.id},${success},${errorMessage}`
       );
     })
   );
-  logger.end();
   await producer.disconnect();
 }
