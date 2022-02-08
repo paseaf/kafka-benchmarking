@@ -1,0 +1,16 @@
+{
+  "name": "results-parser",
+  "version": "1.0.0",
+  "description": "Raw results are grouped by `<sender>-<receiver>` pair in respective folders.",
+  "main": "index.js",
+  "scripts": {
+    "consistency": "node ./calculateConsistency.js",
+    "latency": "node ./calculateLatency.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "csv-parse": "^5.0.4"
+  }
+}
