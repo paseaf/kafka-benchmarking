@@ -7,6 +7,8 @@ https://kafka.apache.org/28/documentation.html#zk
 
 ## Deploy System under Test (SUT) to GCP
 
+Note: We created a GCP VM with Ubuntu 20 as our deployment machine.
+
 ### Prepare Deployment Machine
 
 We use Terraform and Ansible to deploy the cluster. Install them on your deployment machine as follows. (We used Ubuntu 20.04 LTS).
