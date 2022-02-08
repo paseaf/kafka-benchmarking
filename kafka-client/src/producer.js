@@ -1,10 +1,12 @@
+const fs = require("fs/promises");
 const { Kafka } = require("kafkajs");
 const { clientConfigs } = require("../configs");
+const TOPIC = "benchmark";
 const Logger = require("./Logger");
-const logger = new Logger(
-  "producer",
-  "acks,idempotent,maxInFlightRequests,sendTime,id,errorCode"
-);
+const logger = new Logger({
+  filePrefix: "producer",
+  csvHeader: "acks,idempotent,maxInFlightRequests,sendTime,id,errorCode",
+});
 logger.init();
 
 console.log("clientConfigs", clientConfigs);
@@ -16,60 +18,78 @@ const kafka = new Kafka({
   authenticationTimeout: 5000,
 });
 
-async function storeBrokerMetadata(logFilePath, kafka) {
+const movies = require("../dataset/movies.json");
+const messagesToSend = prepareMessages(movies);
+
+// Main
+prepareTopic(kafka)
+  .then(function logMetadata(topicMetadata) {
+    const { topics } = topicMetadata;
+    const brokerInfo = topics[0].partitions[0];
+
+    fs.writeFile(
+      `${logger.filePath}.metadata.json`,
+      JSON.stringify(brokerInfo),
+      {
+        flag: "wx",
+      }
+    );
+  })
+  .then(() => runBenchmark(TOPIC, messagesToSend));
+
+async function prepareTopic(kafka) {
   const admin = kafka.admin();
   await admin.connect();
 
-  // Create topic
-  await admin.createTopics({
-    topics: [{ topic: "test", numPartitions: 1, replicationFactor: 3 }],
+  const topicCreated = await admin.createTopics({
+    topics: [{ topic: TOPIC, numPartitions: 1, replicationFactor: 3 }],
   });
+  topicCreated
+    ? console.log("Topic created.")
+    : console.log("Topic alread exists.");
 
-  const { topics } = await admin.fetchTopicMetadata({ topics: ["test"] });
-  const brokerInfo = topics[0].partitions[0];
-
-  const fs = require("fs/promises");
-  await fs.writeFile(
-    `${logFilePath}.metadata.json`,
-    JSON.stringify(brokerInfo),
-    {
-      flag: "wx",
-    }
-  );
-
+  const topicMetadata = await admin.fetchTopicMetadata({ topics: [TOPIC] });
   await admin.disconnect();
+
+  return topicMetadata;
 }
-storeBrokerMetadata(logger.filePath, kafka);
 
-// prepare messages
-const movies = require("../dataset/movies.json");
-const messagesToSend = movies.map((value, index) => {
-  return {
-    id: index,
-    content: value,
-  };
-});
+function prepareMessages(messageArray) {
+  messageArray = [
+    ...messageArray,
+    // ...messageArray,
+    // ...messageArray,
+    // ...messageArray,
+  ];
+  return messageArray.map((value, index) => {
+    return {
+      id: index,
+      content: value,
+    };
+  });
+}
 
-runBenchmark("test", messagesToSend);
-
-// ----------------------
 async function runBenchmark(topic, messages) {
+  /**
+   * idempotence: "Note that enabling idempotence requires max.in.flight.requests.per.
+   * connection to be less than or equal to 5, retries to be greater than 0 and acks
+   * must be 'all'." source: https://kafka.apache.org/28/documentation.html
+   */
   const configCombinations = [
-    // { acks: -1, idempotent: true, maxInFlightRequests: null },
-    // { acks: -1, idempotent: true, maxInFlightRequests: 1 },
-    // { acks: -1, idempotent: true, maxInFlightRequests: 10 },
+    { acks: -1, idempotent: true, maxInFlightRequests: null },
+    { acks: -1, idempotent: true, maxInFlightRequests: 1 },
 
-    // { acks: -1, idempotent: false, maxInFlightRequests: null },
-    // { acks: -1, idempotent: false, maxInFlightRequests: 1 },
-    // { acks: -1, idempotent: false, maxInFlightRequests: 10 },
+    { acks: -1, idempotent: false, maxInFlightRequests: null },
+    { acks: -1, idempotent: false, maxInFlightRequests: 1 },
+    { acks: -1, idempotent: false, maxInFlightRequests: 10 },
 
-    // { acks: 0, idempotent: false, maxInFlightRequests: null },
-    // { acks: 0, idempotent: false, maxInFlightRequests: 1 },
-    // { acks: 0, idempotent: false, maxInFlightRequests: 10 },
+    { acks: 0, idempotent: false, maxInFlightRequests: null },
+    { acks: 0, idempotent: false, maxInFlightRequests: 1 },
+    { acks: 0, idempotent: false, maxInFlightRequests: 10 },
 
-    // { acks: 1, idempotent: false, maxInFlightRequests: null },
+    { acks: 1, idempotent: false, maxInFlightRequests: null },
     { acks: 1, idempotent: false, maxInFlightRequests: 1 },
-    // { acks: 1, idempotent: false, maxInFlightRequests: 10 },
+    { acks: 1, idempotent: false, maxInFlightRequests: 10 },
   ];
 
   for (const configCombination of configCombinations) {
