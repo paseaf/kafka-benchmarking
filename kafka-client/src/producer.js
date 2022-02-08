@@ -1,5 +1,4 @@
 const fs = require("fs/promises");
-const process = require("process");
 const { Kafka } = require("kafkajs");
 const { clientConfigs, TOPIC } = require("../configs");
 const Logger = require("./Logger");
@@ -57,12 +56,6 @@ async function prepareTopic(kafka) {
 }
 
 function prepareMessages(messageArray) {
-  messageArray = [
-    ...messageArray,
-    // ...messageArray,
-    // ...messageArray,
-    // ...messageArray,
-  ];
   return messageArray.map((value, index) => {
     return {
       id: index,
