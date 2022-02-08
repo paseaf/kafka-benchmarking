@@ -1,13 +1,11 @@
 const fs = require("fs/promises");
 const process = require("process");
 const { Kafka } = require("kafkajs");
-const { clientConfigs } = require("../configs");
-const TOPIC = "benchmark";
+const { clientConfigs, TOPIC } = require("../configs");
 const Logger = require("./Logger");
 const logger = new Logger({
   filePrefix: "producer",
-  csvHeader:
-    "acks,idempotent,maxInFlightRequests,sendTime,id,success,errorMessage",
+  csvHeader: "acks,maxInFlightRequests,sendTime,id,success,errorMessage",
 });
 logger.init();
 
@@ -29,7 +27,6 @@ prepareTopic(kafka)
   .then(() => runBenchmark(TOPIC, messagesToSend))
   .then(() => {
     logger.end();
-    process.exit();
   });
 
 // ======== Util functions =========
@@ -75,26 +72,18 @@ function prepareMessages(messageArray) {
 }
 
 async function runBenchmark(topic, messages) {
-  /**
-   * idempotence: "Note that enabling idempotence requires max.in.flight.requests.per.
-   * connection to be less than or equal to 5, retries to be greater than 0 and acks
-   * must be 'all'." source: https://kafka.apache.org/28/documentation.html
-   */
   const configCombinations = [
-    { acks: -1, idempotent: true, maxInFlightRequests: null },
-    { acks: -1, idempotent: true, maxInFlightRequests: 1 },
+    { acks: -1, maxInFlightRequests: null },
+    { acks: -1, maxInFlightRequests: 1 },
+    { acks: -1, maxInFlightRequests: 10 },
 
-    { acks: -1, idempotent: false, maxInFlightRequests: null },
-    { acks: -1, idempotent: false, maxInFlightRequests: 1 },
-    { acks: -1, idempotent: false, maxInFlightRequests: 10 },
+    { acks: 0, maxInFlightRequests: null },
+    { acks: 0, maxInFlightRequests: 1 },
+    { acks: 0, maxInFlightRequests: 10 },
 
-    { acks: 0, idempotent: false, maxInFlightRequests: null },
-    { acks: 0, idempotent: false, maxInFlightRequests: 1 },
-    { acks: 0, idempotent: false, maxInFlightRequests: 10 },
-
-    { acks: 1, idempotent: false, maxInFlightRequests: null },
-    { acks: 1, idempotent: false, maxInFlightRequests: 1 },
-    { acks: 1, idempotent: false, maxInFlightRequests: 10 },
+    { acks: 1, maxInFlightRequests: null },
+    { acks: 1, maxInFlightRequests: 1 },
+    { acks: 1, maxInFlightRequests: 10 },
   ];
 
   for (const configCombination of configCombinations) {
@@ -104,13 +93,9 @@ async function runBenchmark(topic, messages) {
   }
 }
 
-async function runProducer(
-  topic,
-  messages,
-  { acks, idempotent, maxInFlightRequests }
-) {
+async function runProducer(topic, messages, { acks, maxInFlightRequests }) {
   // Producing
-  const producer = kafka.producer({ idempotent, maxInFlightRequests });
+  const producer = kafka.producer({ maxInFlightRequests });
 
   await producer.connect();
 
@@ -128,7 +113,6 @@ async function runProducer(
             {
               value: JSON.stringify({
                 acks,
-                idempotent,
                 maxInFlightRequests,
                 sendTime,
                 ...message,
@@ -138,11 +122,12 @@ async function runProducer(
         });
         success = true;
       } catch (e) {
+        console.error("error occured in producer.send", e);
         errorMessage = e.message;
         success = false;
       }
       logger.appendRow(
-        `${acks},${idempotent},${maxInFlightRequests},${sendTime},${message.id},${success},${errorMessage}`
+        `${acks},${maxInFlightRequests},${sendTime},${message.id},${success},${errorMessage}`
       );
     })
   );

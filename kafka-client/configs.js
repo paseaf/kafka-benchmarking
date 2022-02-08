@@ -8,7 +8,10 @@ const consumerConfigs = {
   groupId: "benchmarkgroup",
 };
 
+const TOPIC = "benchmark";
+
 module.exports = {
   clientConfigs,
   consumerConfigs,
+  TOPIC,
 };

@@ -1,5 +1,5 @@
 const { Kafka } = require("kafkajs");
-const { clientConfigs, consumerConfigs } = require("../configs");
+const { clientConfigs, consumerConfigs, TOPIC } = require("../configs");
 
 // TODO: create topic with different broker settings here. Because consumers are run before producers.
 // https://kafka.js.org/docs/admin#create-topics
@@ -11,11 +11,13 @@ const kafka = new Kafka({
 // Logger
 const Logger = require("./Logger");
 
-const logger = new Logger(
-  "consumer",
-  "acks,idempotent,maxInFlightRequests,sendTime,receiveTime,id"
-);
+const logger = new Logger({
+  filePrefix: "consumer",
+  csvHeader: "acks,maxInFlightRequests,sendTime,receiveTime,id",
+});
 logger.init();
+
+runConsumer(TOPIC, consumerConfigs.groupId);
 
 // Consume
 async function runConsumer(topic, groupId) {
@@ -28,14 +30,11 @@ async function runConsumer(topic, groupId) {
       const receiveTime = Date.now();
 
       const value = JSON.parse(message.value.toString());
-      console.log(value);
 
-      const { acks, idempotent, maxInFlightRequests, sendTime, id } = value;
+      const { acks, maxInFlightRequests, sendTime, id } = value;
       logger.appendRow(
-        `${acks},${idempotent},${maxInFlightRequests},${sendTime},${receiveTime},${id}`
+        `${acks},${maxInFlightRequests},${sendTime},${receiveTime},${id}`
       );
     },
   });
 }
-
-runConsumer("test", consumerConfigs.groupId);

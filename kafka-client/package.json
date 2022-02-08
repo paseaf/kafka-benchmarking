@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "produce": "node src/producer.js",
+    "consume": "node src/consumer.js",
     "test": "jest",
     "format": "prettier -w ./src"
   },
