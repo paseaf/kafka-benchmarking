@@ -10,7 +10,7 @@ class Logger {
    * @param {string} filePrefix Example: "producer", "consumer"
    * @param {string} csvHeader Example: "timestamp,id,content"
    */
-  constructor(filePrefix, csvHeader) {
+  constructor({ filePrefix, csvHeader }) {
     this.filePrefix = filePrefix;
     this.csvHeader = csvHeader;
     this.writable = null;
@@ -24,16 +24,16 @@ class Logger {
       `${date.getUTCFullYear()}` +
       `${date.getUTCMonth() < 9 ? 0 : ""}` +
       `${date.getUTCMonth() + 1}` +
-      `${date.getUTCDate() < 9 ? 0 : ""}` +
+      `${date.getUTCDate() < 10 ? 0 : ""}` +
       `${date.getUTCDate()}` +
       "-" +
-      `${date.getUTCHours() < 9 ? 0 : ""}` +
+      `${date.getUTCHours() < 10 ? 0 : ""}` +
       `${date.getUTCHours()}` +
       "-" +
-      `${date.getUTCMinutes() < 9 ? 0 : ""}` +
+      `${date.getUTCMinutes() < 10 ? 0 : ""}` +
       `${date.getUTCMinutes()}` +
       "-" +
-      `${date.getUTCSeconds() < 9 ? 0 : ""}` +
+      `${date.getUTCSeconds() < 10 ? 0 : ""}` +
       `${date.getUTCSeconds()}`;
 
     if (!fsSync.existsSync(logDir)) {
