@@ -50,7 +50,7 @@ resource "google_compute_firewall" "cluster_subnet_rules" {
   allow {
     protocol = "udp"
   }
-  source_ranges = ["10.0.0.0/8"]
+  source_ranges = ["0.0.0.0/0"]
 }
 
 resource "google_compute_subnetwork" "client_subnet" {
@@ -69,7 +69,7 @@ resource "google_compute_firewall" "client_subnet_rules" {
   allow {
     protocol = "udp"
   }
-  source_ranges = ["10.0.0.0/8"]
+  source_ranges = ["0.0.0.0/0"]
 }
 
 resource "google_compute_instance" "kafka1" {
